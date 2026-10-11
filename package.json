@@ -1,0 +1,40 @@
+{
+  "name": "ts-serialize",
+  "version": "0.2.0",
+  "description": "Gson-style class serialization for TypeScript via compile-time codegen and standard decorators.",
+  "type": "module",
+  "main": "lib/index.ts",
+  "exports": {
+    ".": "./lib/index.ts",
+    "./transformer": "./transformer/index.ts",
+    "./webpack": "./webpack-loader/serialize-loader.cjs",
+    "./language-service": "./lang-service/language-service.cjs"
+  },
+  "files": [
+    "lib",
+    "transformer",
+    "webpack-loader",
+    "lang-service"
+  ],
+  "scripts": {
+    "test": "webpack && node dist/sample.cjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.10",
+    "@babel/plugin-proposal-decorators": "^7.26.0",
+    "@babel/preset-env": "^7.26.9",
+    "@babel/preset-typescript": "^7.26.0",
+    "babel-loader": "^10.0.0",
+    "ts-serialize-ls": "file:./lang-service",
+    "typescript": "^5.8.2",
+    "webpack": "^5.98.0",
+    "webpack-cli": "^6.0.1"
+  }
+}

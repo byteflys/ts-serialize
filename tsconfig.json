@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "allowImportingTsExtensions": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "noEmit": true,
+    "strict": false,
+    "sourceMap": true,
+    "sourceRoot": ".",
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "dist",
+    "lib": [
+      "dom"
+    ],
+    "plugins": [
+      {
+        "name": "ts-serialize-ls"
+      }
+    ]
+  },
+  "typeAcquisition": {
+    "enable": true
+  },
+  "exclude": [
+    "node_modules"
+  ],
+  "include": [
+    "lib",
+    "transformer",
+    "sample"
+  ]
+}
