@@ -454,6 +454,25 @@ function typeNodeToCallIR(type: ts.TypeNode, factory: ts.NodeFactory): ts.Expres
         item: typeNodeToCallIR(type.typeArguments[0], factory),
       })
     }
+    if (name === "Set") {
+      return objectExpr(factory, {
+        kind: factory.createStringLiteral("set"),
+        item: type.typeArguments?.[0]
+          ? typeNodeToCallIR(type.typeArguments[0], factory)
+          : objectExpr(factory, { kind: factory.createStringLiteral("any") }),
+      })
+    }
+    if (name === "Map") {
+      return objectExpr(factory, {
+        kind: factory.createStringLiteral("map"),
+        key: type.typeArguments?.[0]
+          ? typeNodeToCallIR(type.typeArguments[0], factory)
+          : objectExpr(factory, { kind: factory.createStringLiteral("string") }),
+        value: type.typeArguments?.[1]
+          ? typeNodeToCallIR(type.typeArguments[1], factory)
+          : objectExpr(factory, { kind: factory.createStringLiteral("any") }),
+      })
+    }
     const ctor = factory.createIdentifier(name)
     if (!type.typeArguments?.length) {
       return factory.createPropertyAccessExpression(ctor, "__ir")

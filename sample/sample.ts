@@ -107,3 +107,10 @@ if (!(named.first instanceof User) || named.first.sayHi() !== "hi Ada") fail("fi
 if (!(named.second instanceof Person) || named.second.greet() !== "p Dr") fail("second Person")
 if (named.label !== "pair") fail("label")
 console.log(named.first.sayHi(), named.second.greet(), named.label)
+
+const users = fromJson<Map<string, User>>({
+  ada: { name: "Ada", createdAt: "2024-01-02T00:00:00.000Z" },
+})
+const ada = users.get("ada")
+if (!(users instanceof Map) || !(ada instanceof User) || ada.sayHi() !== "hi Ada") fail("Map User")
+console.log(toJson(users))

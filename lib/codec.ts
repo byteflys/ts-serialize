@@ -265,6 +265,23 @@ function inferIR(value: unknown): TypeIR | undefined {
   if (value instanceof Date) {
     return { kind: "date" }
   }
+  if (value instanceof Map) {
+    let stringKeys = true
+    for (const key of value.keys()) {
+      if (typeof key !== "string") {
+        stringKeys = false
+        break
+      }
+    }
+    return {
+      kind: "map",
+      key: { kind: stringKeys ? "string" : "any" },
+      value: { kind: "any" },
+    }
+  }
+  if (value instanceof Set) {
+    return { kind: "set", item: { kind: "any" } }
+  }
   if (value && typeof value === "object") {
     const ctor = value.constructor as ClassType
     if (ctor && ctor !== Object) {

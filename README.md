@@ -268,6 +268,7 @@ common lib exports
 - `@Transient()` skip in encode / decode
 - `@Remark("...")` attach a note on a function
 - `fromJson` / `fromPlain` json or plain object to class
+- `fromJson<Map<string, User>>(json)` / `fromJson<Set<User>>(json)` built-in collections
 - `toJson` / `toPlain` class to json or plain object
 - `getRemark` read the transformed function note
 - `registerConverter` add a named converter
