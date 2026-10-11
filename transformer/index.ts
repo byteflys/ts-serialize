@@ -7,9 +7,17 @@ export function createSerializerTransformer(_program?: ts.Program): ts.Transform
   return (context) => {
     const factory = context.factory
     return (sourceFile) => {
+      const typeParamStack: string[][] = []
+      const typeParams = () => typeParamStack.flat()
       const visit = (node: ts.Node): ts.Node => {
+        if (isFunctionLike(node)) {
+          typeParamStack.push((node.typeParameters ?? []).map((param) => param.name.text))
+          const result = ts.visitEachChild(node, visit, context)
+          typeParamStack.pop()
+          return result
+        }
         if (ts.isCallExpression(node)) {
-          return rewriteCodecCall(node, factory, (child) => ts.visitEachChild(child, visit, context))
+          return rewriteCodecCall(node, factory, (child) => ts.visitEachChild(child, visit, context), typeParams())
         }
         if (ts.isClassDeclaration(node) && isSchemaClass(node)) {
           return transformSerializableClass(node, factory, (child) => ts.visitEachChild(child, visit, context))
@@ -405,10 +413,21 @@ function typeOptionToIR(
   return undefined
 }
 
+function isFunctionLike(node: ts.Node): node is ts.FunctionLikeDeclaration {
+  return (
+    ts.isFunctionDeclaration(node) ||
+    ts.isMethodDeclaration(node) ||
+    ts.isFunctionExpression(node) ||
+    ts.isArrowFunction(node) ||
+    ts.isConstructorDeclaration(node)
+  )
+}
+
 function rewriteCodecCall(
   node: ts.CallExpression,
   factory: ts.NodeFactory,
   visit: (node: ts.CallExpression) => ts.CallExpression,
+  typeParams: string[],
 ): ts.CallExpression {
   const visited = visit(node)
   if (!visited.typeArguments?.length || visited.arguments.length !== 1) {
@@ -417,13 +436,20 @@ function rewriteCodecCall(
   if (!isCodecIdentifier(visited.expression)) {
     return visited
   }
-  const ir = typeNodeToCallIR(visited.typeArguments[0], factory)
+  const typeArg = visited.typeArguments[0]
+  const ir = isTypeParamRef(typeArg, typeParams)
+    ? factory.createElementAccessExpression(factory.createIdentifier("arguments"), factory.createNumericLiteral(1))
+    : typeNodeToCallIR(typeArg, factory)
   return factory.updateCallExpression(
     visited,
     visited.expression,
     undefined,
     [visited.arguments[0], ir],
   )
+}
+
+function isTypeParamRef(type: ts.TypeNode, typeParams: string[]): boolean {
+  return ts.isTypeReferenceNode(type) && !type.typeArguments?.length && typeParams.includes(entityNameText(type.typeName))
 }
 
 function isCodecIdentifier(expr: ts.Expression): boolean {
