@@ -26,19 +26,17 @@ function loadTransformer() {
 }
 
 module.exports = function serializeLoader(source) {
-    const result = ts.transpileModule(source, {
-        compilerOptions: {
-            target: ts.ScriptTarget.ES2017,
-            module: ts.ModuleKind.ESNext,
-            sourceMap: true,
-            esModuleInterop: true,
-            allowSyntheticDefaultImports: true
-        },
-        fileName: this.resourcePath,
-        transformers: {
-            before: [loadTransformer()()]
-        }
-    })
-    const map = result.sourceMapText ? JSON.parse(result.sourceMapText) : undefined
-    this.callback(null, result.outputText, map)
+    const isTsx = this.resourcePath.endsWith(".tsx")
+    const scriptKind = isTsx ? ts.ScriptKind.TSX : ts.ScriptKind.TS
+    const sourceFile = ts.createSourceFile(
+        this.resourcePath,
+        source,
+        ts.ScriptTarget.Latest,
+        true,
+        scriptKind
+    )
+    const transformed = ts.transform(sourceFile, [loadTransformer()()])
+    const output = ts.createPrinter().printFile(transformed.transformed[0])
+    transformed.dispose()
+    this.callback(null, output)
 }

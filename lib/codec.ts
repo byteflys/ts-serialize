@@ -115,10 +115,13 @@ function reviveMap(data: unknown, ir: Extract<TypeIR, { kind: "map" }>, path: st
 }
 
 function reviveClass(data: unknown, ir: Extract<TypeIR, { kind: "class" }>, path: string, options: CodecOptions): object {
+  if (isArrayLikeCtor(ir.ctor) && Array.isArray(data)) {
+    return reviveArrayLike(data, ir, path, options)
+  }
   if (!data || typeof data !== "object" || Array.isArray(data)) {
     throw new SerializeError("Expected object", path)
   }
-  const inst = Object.create(ir.ctor.prototype) as Record<string, unknown>
+  const inst = createInstance(ir.ctor) as Record<string, unknown>
   for (const field of resolveFields(ir)) {
     if (field.transient) {
       continue
@@ -205,7 +208,11 @@ function dumpMap(value: Map<unknown, unknown>, ir: Extract<TypeIR, { kind: "map"
   ])
 }
 
-function dumpClass(value: unknown, ir: Extract<TypeIR, { kind: "class" }>, path: string): Record<string, unknown> {
+function dumpClass(value: unknown, ir: Extract<TypeIR, { kind: "class" }>, path: string): unknown {
+  if (isArrayLikeCtor(ir.ctor) && Array.isArray(value)) {
+    const itemIR = ir.typeArgs[0]
+    return [...value].map((item, index) => dump(item, itemIR, `${path}[${index}]`))
+  }
   const out: Record<string, unknown> = {}
   for (const field of resolveFields(ir)) {
     if (field.transient) {
@@ -265,6 +272,47 @@ function inferIR(value: unknown): TypeIR | undefined {
     }
   }
   return undefined
+}
+
+function isArrayLikeCtor(ctor: ClassType | undefined): boolean {
+  if (!ctor) {
+    return false
+  }
+  if (ctor === Array) {
+    return true
+  }
+  try {
+    return ctor.prototype instanceof Array
+  } catch {
+    return false
+  }
+}
+
+function reviveArrayLike(
+  data: unknown[],
+  ir: Extract<TypeIR, { kind: "class" }>,
+  path: string,
+  options: CodecOptions,
+): unknown {
+  const itemIR = ir.typeArgs[0] ?? { kind: "any" as const }
+  const items = data.map((item, index) => revive(item, itemIR, `${path}[${index}]`, options))
+  if (ir.ctor === Array) {
+    return items
+  }
+  const list = createInstance(ir.ctor)
+  if (Array.isArray(list)) {
+    list.push(...items)
+    return list
+  }
+  return items
+}
+
+function createInstance(ctor: ClassType): object {
+  try {
+    return new (ctor as new () => object)()
+  } catch {
+    return Object.create(ctor.prototype)
+  }
 }
 
 function bindPrototypeMethods(inst: object, ctor: ClassType): void {
