@@ -2,6 +2,7 @@ import {
   Alias,
   Convert,
   Field,
+  PlainObject,
   Remark,
   Serializable,
   Transient,
@@ -9,6 +10,12 @@ import {
   getRemark,
   toJson,
 } from "../lib/index.ts"
+
+@PlainObject()
+class Token {
+  value = ""
+  ttl = 0
+}
 
 @Serializable()
 class User {
@@ -106,6 +113,10 @@ if (!(named instanceof NamedPair)) fail("NamedPair")
 if (!(named.first instanceof User) || named.first.sayHi() !== "hi Ada") fail("first User")
 if (!(named.second instanceof Person) || named.second.greet() !== "p Dr") fail("second Person")
 if (named.label !== "pair") fail("label")
+const token = fromJson<Token>({ value: "abc", ttl: 30 })
+if (token.value !== "abc" || token.ttl !== 30) fail("Token")
+console.log(toJson(token))
+
 console.log(named.first.sayHi(), named.second.greet(), named.label)
 
 const users = fromJson<Map<string, User>>({

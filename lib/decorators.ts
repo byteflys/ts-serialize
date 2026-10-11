@@ -17,6 +17,11 @@ export function Serializable(_options?: SerializableOptions) {
   return (_ctor: Function, _context: ClassDecoratorContext) => {}
 }
 
+/** Data-only class: properties, no behavior. Transformer emits `__ir`; JSON.parse / JSON.stringify is enough. */
+export function PlainObject(_options?: SerializableOptions) {
+  return (_ctor: Function, _context: ClassDecoratorContext) => {}
+}
+
 /** Compile-time marker for a serializable field. */
 export function Field(_options: FieldOptions = {}) {
   return (_value: undefined, _context: ClassFieldDecoratorContext) => {}

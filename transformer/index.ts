@@ -1,6 +1,6 @@
 import ts from "typescript"
 
-const SERIALIZE_DECORATORS = new Set(["Serializable", "Field", "Transient", "Convert", "Alias"])
+const SERIALIZE_DECORATORS = new Set(["Serializable", "PlainObject", "Field", "Transient", "Convert", "Alias"])
 const CODEC_APIS = new Set(["fromJson", "fromPlain", "fromPlainList", "toJson", "toPlain"])
 
 export function createSerializerTransformer(_program?: ts.Program): ts.TransformerFactory<ts.SourceFile> {
@@ -11,7 +11,7 @@ export function createSerializerTransformer(_program?: ts.Program): ts.Transform
         if (ts.isCallExpression(node)) {
           return rewriteCodecCall(node, factory, (child) => ts.visitEachChild(child, visit, context))
         }
-        if (ts.isClassDeclaration(node) && hasDecorator(node, "Serializable")) {
+        if (ts.isClassDeclaration(node) && isSchemaClass(node)) {
           return transformSerializableClass(node, factory, (child) => ts.visitEachChild(child, visit, context))
         }
         if (ts.isModuleDeclaration(node) && node.body && ts.isModuleBlock(node.body)) {
@@ -719,6 +719,10 @@ function decoratorsOf(node: ts.Node): ts.Decorator[] {
   }
   const modifiers = (node as ts.HasModifiers).modifiers
   return [...(modifiers ?? [])].filter((modifier): modifier is ts.Decorator => ts.isDecorator(modifier))
+}
+
+function isSchemaClass(node: ts.ClassDeclaration): boolean {
+  return hasDecorator(node, "Serializable") || hasDecorator(node, "PlainObject")
 }
 
 function hasDecorator(node: ts.Node, name: string): boolean {

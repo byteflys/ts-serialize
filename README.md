@@ -171,7 +171,18 @@ import {
 } from "ts-serialize"
 ```
 
-define a serializable class<br>
+`@PlainObject()` is for data bags with properties only<br>
+no methods, no `@Field()`, and callers can use `JSON.parse` / `JSON.stringify`
+
+```ts
+@PlainObject()
+class Token {
+  value = ""
+  ttl = 0
+}
+```
+
+define a serializable class when it has methods that must come back after decode<br>
 every persisted field needs `@Field()`
 
 ```ts
@@ -262,6 +273,7 @@ getRemark(Sync.pushUser)
 common lib exports
 
 - `@Serializable()` mark a class for codegen
+- `@PlainObject()` data-only class, properties only, JSON.parse / JSON.stringify is enough
 - `@Field()` mark a persisted field
 - `@Alias("name")` json key different from the field name
 - `@Convert("name")` named converter

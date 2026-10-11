@@ -6,6 +6,7 @@ export {
   Alias,
   Convert,
   Field,
+  PlainObject,
   Remark,
   Serializable,
   Transient,
