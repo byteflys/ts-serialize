@@ -1,7 +1,7 @@
 import ts from "typescript"
 
 const SERIALIZE_DECORATORS = new Set(["Serializable", "PlainObject", "Field", "Transient", "Convert", "Alias"])
-const CODEC_APIS = new Set(["fromJson", "fromPlain", "fromPlainList", "toJson", "toPlain"])
+const CODEC_APIS = new Set(["fromJson", "fromPlain", "fromPlainList", "toJson", "toPlain", "get"])
 
 export function createSerializerTransformer(_program?: ts.Program): ts.TransformerFactory<ts.SourceFile> {
   return (context) => {
